@@ -38,7 +38,7 @@ docker run -d \
   -e "PORT=3000" \
   -e "DATABASE_URL=${DATABASE_URL}" \
   "${IMAGE}"
-docker image prune -f || true
+docker image prune -a -f || true
 EOF
 
 echo "Deployed ${ENVIRONMENT_NAME} to ${SSH_HOST}:${PORT_VALUE}"
