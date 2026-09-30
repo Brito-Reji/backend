@@ -22,23 +22,18 @@ SSH="ssh -i ${HOME}/.ssh/id_deploy -o StrictHostKeyChecking=yes"
 
 docker save "${IMAGE}" | ${SSH} "${REMOTE}" "docker load"
 
-${SSH} "${REMOTE}" \
-  ENVIRONMENT_NAME="${ENVIRONMENT_NAME}" \
-  IMAGE="${IMAGE}" \
-  PORT_VALUE="${PORT_VALUE}" \
-  DATABASE_URL="${DATABASE_URL:-}" \
-  sh <<'EOF'
-set -eu
-docker rm -f "buildathon-backend-${ENVIRONMENT_NAME}" >/dev/null 2>&1 || true
-docker run -d \
-  --name "buildathon-backend-${ENVIRONMENT_NAME}" \
-  --restart unless-stopped \
-  -p "${PORT_VALUE}:3000" \
-  -e "NODE_ENV=${ENVIRONMENT_NAME}" \
-  -e "PORT=3000" \
-  -e "DATABASE_URL=${DATABASE_URL}" \
-  "${IMAGE}"
-docker image prune -f || true
-EOF
+${SSH} "${REMOTE}" "
+  set -eu
+  docker rm -f \"buildathon-backend-${ENVIRONMENT_NAME}\" >/dev/null 2>&1 || true
+  docker run -d \\
+    --name \"buildathon-backend-${ENVIRONMENT_NAME}\" \\
+    --restart unless-stopped \\
+    -p \"${PORT_VALUE}:3000\" \\
+    -e \"NODE_ENV=${ENVIRONMENT_NAME}\" \\
+    -e \"PORT=3000\" \\
+    -e \"DATABASE_URL=${DATABASE_URL:-}\" \\
+    \"${IMAGE}\"
+  docker image prune -f || true
+"
 
 echo "Deployed ${ENVIRONMENT_NAME} to ${SSH_HOST}:${PORT_VALUE}"
